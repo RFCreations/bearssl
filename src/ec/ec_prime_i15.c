@@ -31,6 +31,41 @@
  *   - b*R mod p (b is the second curve equation parameter)
  */
 
+/*
+p256_p = 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff
+p256_b = 0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b
+to_i15 = lambda x, b: print("0x%04X, " % (((b // 15) << 4) + b % 15) + ", ".join("0x%04X" % (x >> 15*i & 0x7FFF) for i in range(ceil(b/15))))
+to_i15(p256_p, 256) # P256_P[]
+p256_r = 2**(ceil(log2(p256_p)/15)*15)
+to_i15(p256_r**2 % p256_p, 256) # P256_R2[]
+to_i15(p256_r*p256_b % p256_p, 256) # P256_B[]
+
+p192_p = 0xfffffffffffffffffffffffffffffffeffffffffffffffff
+p192_b = 0x64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1
+to_i15(p192_p, 192) # P192_P[]
+p192_r = 2**(ceil(log2(p192_p)/15)*15)
+to_i15(p192_r**2 % p192_p, 192) # P192_R2[]
+to_i15(p192_r*p192_b % p192_p, 192) # P192_B[]
+*/
+
+static const uint16_t P192_P[] = {
+	0x00CC,
+	0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF, 0x7FEF, 0x7FFF, 0x7FFF, 0x7FFF,
+	0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF, 0x0FFF
+};
+
+static const uint16_t P192_R2[] = {
+	0x00CC,
+	0x0040, 0x0000, 0x0000, 0x0000, 0x0800, 0x0000, 0x0000, 0x0000,
+	0x4000, 0x0000, 0x0000, 0x0000, 0x0000
+};
+
+static const uint16_t P192_B[] = {
+	0x00CC,
+	0x54C3, 0x6E33, 0x00D4, 0x3679, 0x7161, 0x076A, 0x6432, 0x0736,
+	0x0B94, 0x0B13, 0x2AF8, 0x3BB1, 0x09E4
+};
+
 static const uint16_t P256_P[] = {
 	0x0111,
 	0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF, 0x003F, 0x0000,
@@ -115,12 +150,20 @@ static inline const curve_params *
 id_to_curve(int curve)
 {
 	static const curve_params pp[] = {
+		{ P192_P, P192_B, P192_R2, 0x0001,  49 },
 		{ P256_P, P256_B, P256_R2, 0x0001,  65 },
 		{ P384_P, P384_B, P384_R2, 0x0001,  97 },
 		{ P521_P, P521_B, P521_R2, 0x0001, 133 }
 	};
 
-	return &pp[curve - BR_EC_secp256r1];
+	switch (curve) {
+	case BR_EC_secp192r1: return &pp[0];
+	case BR_EC_secp256r1: return &pp[1];
+	case BR_EC_secp384r1: return &pp[2];
+	case BR_EC_secp521r1: return &pp[3];
+	}
+
+	return 0;
 }
 
 #define I15_LEN   ((BR_MAX_EC_SIZE + 29) / 15)
@@ -686,6 +729,8 @@ static const br_ec_curve_def *
 id_to_curve_def(int curve)
 {
 	switch (curve) {
+	case BR_EC_secp192r1:
+		return &br_secp192r1;
 	case BR_EC_secp256r1:
 		return &br_secp256r1;
 	case BR_EC_secp384r1:
@@ -814,7 +859,7 @@ api_muladd(unsigned char *A, const unsigned char *B, size_t len,
 
 /* see bearssl_ec.h */
 const br_ec_impl br_ec_prime_i15 = {
-	(uint32_t)0x03800000,
+	(uint32_t)0x03880000,
 	&api_generator,
 	&api_order,
 	&api_xoff,

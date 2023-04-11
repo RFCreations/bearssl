@@ -58,6 +58,9 @@ br_ecdsa_i31_vrfy_raw(const br_ec_impl *impl,
 	 * Get the curve parameters (generator and order).
 	 */
 	switch (pk->curve) {
+	case BR_EC_secp192r1:
+		cd = &br_secp192r1;
+		break;
 	case BR_EC_secp256r1:
 		cd = &br_secp256r1;
 		break;

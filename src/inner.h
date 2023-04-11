@@ -2039,6 +2039,7 @@ typedef struct {
 	size_t generator_len;
 } br_ec_curve_def;
 
+extern const br_ec_curve_def br_secp192r1;
 extern const br_ec_curve_def br_secp256r1;
 extern const br_ec_curve_def br_secp384r1;
 extern const br_ec_curve_def br_secp521r1;

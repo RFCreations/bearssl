@@ -30,6 +30,41 @@
  * representation).
  */
 
+/*
+p256_p = 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff
+p256_b = 0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b
+to_i31 = lambda x, b: print("0x%08X, " % (((b // 31) << 5) + b % 31) + ", ".join("0x%08X" % (x >> 31*i & 0x7FFFFFFF) for i in range(ceil(b/31))))
+to_i31(p256_p, 256) # P256_P[]
+p256_r = 2**(ceil(log2(p256_p)/31)*31)
+to_i31(p256_r**2 % p256_p, 256) # P256_R2[]
+to_i31(p256_r*p256_b % p256_p, 256) # P256_B[]
+
+p192_p = 0xfffffffffffffffffffffffffffffffeffffffffffffffff
+p192_b = 0x64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1
+to_i31(p192_p, 192) # P192_P[]
+p192_r = 2**(ceil(log2(p192_p)/31)*31)
+to_i31(p192_r**2 % p192_p, 192) # P192_R2[]
+to_i31(p192_r*p192_b % p192_p, 192) # P192_B[]
+*/
+
+static const uint32_t P192_P[] = {
+	0x000000C6, 
+	0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFB, 0x7FFFFFFF, 
+	0x7FFFFFFF, 0x7FFFFFFF, 0x0000003F
+};
+
+static const uint32_t P192_R2[] = {
+	0x000000C6,
+	0x00000000, 0x00080000, 0x00000000, 0x00400000,
+	0x00000000, 0x00800000, 0x00000000
+};
+
+static const uint32_t P192_B[] = {
+	0x000000C6,
+	0x30E791DD, 0x1A9B8CEA, 0x16B51694, 0x219076AE,
+	0x2E5039B6, 0x55F02C4C, 0x00000022
+};
+
 static const uint32_t P256_P[] = {
 	0x00000108,
 	0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x00000007,
@@ -114,12 +149,20 @@ static inline const curve_params *
 id_to_curve(int curve)
 {
 	static const curve_params pp[] = {
+		{ P192_P, P192_B, P192_R2, 0x00000001,  49 },
 		{ P256_P, P256_B, P256_R2, 0x00000001,  65 },
 		{ P384_P, P384_B, P384_R2, 0x00000001,  97 },
 		{ P521_P, P521_B, P521_R2, 0x00000001, 133 }
 	};
 
-	return &pp[curve - BR_EC_secp256r1];
+	switch (curve) {
+	case BR_EC_secp192r1: return &pp[0];
+	case BR_EC_secp256r1: return &pp[1];
+	case BR_EC_secp384r1: return &pp[2];
+	case BR_EC_secp521r1: return &pp[3];
+	}
+
+	return 0;
 }
 
 #define I31_LEN   ((BR_MAX_EC_SIZE + 61) / 31)
@@ -688,6 +731,8 @@ static const br_ec_curve_def *
 id_to_curve_def(int curve)
 {
 	switch (curve) {
+	case BR_EC_secp192r1:
+		return &br_secp192r1;
 	case BR_EC_secp256r1:
 		return &br_secp256r1;
 	case BR_EC_secp384r1:
@@ -816,7 +861,7 @@ api_muladd(unsigned char *A, const unsigned char *B, size_t len,
 
 /* see bearssl_ec.h */
 const br_ec_impl br_ec_prime_i31 = {
-	(uint32_t)0x03800000,
+	(uint32_t)0x03880000,
 	&api_generator,
 	&api_order,
 	&api_xoff,

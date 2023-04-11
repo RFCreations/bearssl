@@ -86,6 +86,7 @@ coresrc=" \
 	src/ec/ec_prime_i15.c \
 	src/ec/ec_prime_i31.c \
 	src/ec/ec_pubkey.c \
+	src/ec/ec_secp192r1.c \
 	src/ec/ec_secp256r1.c \
 	src/ec/ec_secp384r1.c \
 	src/ec/ec_secp521r1.c \

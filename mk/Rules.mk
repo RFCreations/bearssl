@@ -38,6 +38,7 @@ OBJ = \
  $(OBJDIR)$Pec_prime_i15$O \
  $(OBJDIR)$Pec_prime_i31$O \
  $(OBJDIR)$Pec_pubkey$O \
+ $(OBJDIR)$Pec_secp192r1$O \
  $(OBJDIR)$Pec_secp256r1$O \
  $(OBJDIR)$Pec_secp384r1$O \
  $(OBJDIR)$Pec_secp521r1$O \
@@ -485,6 +486,9 @@ $(OBJDIR)$Pec_prime_i31$O: src$Pec$Pec_prime_i31.c $(HEADERSPRIV)
 
 $(OBJDIR)$Pec_pubkey$O: src$Pec$Pec_pubkey.c $(HEADERSPRIV)
 	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Pec_pubkey$O src$Pec$Pec_pubkey.c
+
+$(OBJDIR)$Pec_secp192r1$O: src$Pec$Pec_secp192r1.c $(HEADERSPRIV)
+	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Pec_secp192r1$O src$Pec$Pec_secp192r1.c
 
 $(OBJDIR)$Pec_secp256r1$O: src$Pec$Pec_secp256r1.c $(HEADERSPRIV)
 	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Pec_secp256r1$O src$Pec$Pec_secp256r1.c
